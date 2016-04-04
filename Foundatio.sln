@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.AWS.Tests", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.WindowsServerServiceBus", "src\WindowsServerServiceBus\Foundatio.WindowsServerServiceBus.csproj", "{5CACEF55-E509-4043-B9C8-19C28D9154E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.WindowsServerServiceBus.Tests", "src\WindowsServerServiceBus\Tests\Foundatio.WindowsServerServiceBus.Tests.csproj", "{350FF062-3935-4263-9CA2-327E8000BC0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{350FF062-3935-4263-9CA2-327E8000BC0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{350FF062-3935-4263-9CA2-327E8000BC0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{350FF062-3935-4263-9CA2-327E8000BC0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{350FF062-3935-4263-9CA2-327E8000BC0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,5 +131,6 @@ Global
 		{CA7CD628-686F-4821-879B-5A8158C3EBB1} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
 		{FF0F1A67-1148-41B0-8734-7EE63D6766D9} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
 		{44577341-4DFB-4BEB-BAF0-0E37013BFF7A} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
+		{350FF062-3935-4263-9CA2-327E8000BC0B} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
 	EndGlobalSection
 EndGlobal
