@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25029.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio", "src\Core\Foundatio.csproj", "{F5B6C2B5-485F-4A4B-8E00-D5F77676CD6E}"
 EndProject
@@ -40,6 +40,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.AWS", "src\AWS\Foundatio.AWS.csproj", "{B27A8FDF-3D47-41A2-9B61-425C205E6EDC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.AWS.Tests", "src\AWS\Tests\Foundatio.AWS.Tests.csproj", "{44577341-4DFB-4BEB-BAF0-0E37013BFF7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundatio.WindowsServerServiceBus", "src\WindowsServerServiceBus\Foundatio.WindowsServerServiceBus.csproj", "{5CACEF55-E509-4043-B9C8-19C28D9154E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +109,10 @@ Global
 		{44577341-4DFB-4BEB-BAF0-0E37013BFF7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44577341-4DFB-4BEB-BAF0-0E37013BFF7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44577341-4DFB-4BEB-BAF0-0E37013BFF7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CACEF55-E509-4043-B9C8-19C28D9154E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
