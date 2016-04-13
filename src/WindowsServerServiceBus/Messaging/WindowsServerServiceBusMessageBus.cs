@@ -18,11 +18,18 @@ namespace Foundatio.Messaging
         private readonly TopicClient _topicClient;
         private readonly SubscriptionClient _subscriptionClient;
 
-        public WindowsServerServiceBusMessageBus(Uri namespaceManagerAddress, Uri messagingFactoryUri, Uri tokenProviderAddress, string topicName, ISerializer serializer = null, ILoggerFactory loggerFactory = null) : base(loggerFactory)
+        public WindowsServerServiceBusMessageBus(
+            Uri namespaceManagerAddress,
+            Uri messagingFactoryAddress,
+            Uri tokenProviderAddress,
+            string topicName,
+            string subscriptionName = "MessageBus",
+            ISerializer serializer = null,
+            ILoggerFactory loggerFactory = null) : base(loggerFactory)
         {
             _topicName = topicName;
             _serializer = serializer ?? new JsonNetSerializer();
-            _subscriptionName = "MessageBus";
+            _subscriptionName = subscriptionName;
 
             var tokenProvider = TokenProvider.CreateWindowsTokenProvider(new[] { tokenProviderAddress });
 
@@ -30,7 +37,7 @@ namespace Foundatio.Messaging
             if (!_namespaceManager.TopicExists(_topicName))
                 _namespaceManager.CreateTopic(_topicName);
 
-            var messageFactory = MessagingFactory.Create(messagingFactoryUri, tokenProvider);
+            var messageFactory = MessagingFactory.Create(messagingFactoryAddress, tokenProvider);
 
             _topicClient = messageFactory.CreateTopicClient(topicName);
 
