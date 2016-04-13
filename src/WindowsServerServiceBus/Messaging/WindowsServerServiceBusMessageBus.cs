@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Foundatio.Extensions;
@@ -17,6 +17,30 @@ namespace Foundatio.Messaging
         private readonly NamespaceManager _namespaceManager;
         private readonly TopicClient _topicClient;
         private readonly SubscriptionClient _subscriptionClient;
+
+        public WindowsServerServiceBusMessageBus(Uri namespaceManagerAddress, Uri messagingFactoryUri, Uri tokenProviderAddress, string topicName, ISerializer serializer = null, ILoggerFactory loggerFactory = null) : base(loggerFactory)
+        {
+            _topicName = topicName;
+            _serializer = serializer ?? new JsonNetSerializer();
+            _subscriptionName = "MessageBus";
+
+            var tokenProvider = TokenProvider.CreateWindowsTokenProvider(new[] { tokenProviderAddress });
+
+            _namespaceManager = new NamespaceManager(namespaceManagerAddress, tokenProvider);
+            if (!_namespaceManager.TopicExists(_topicName))
+                _namespaceManager.CreateTopic(_topicName);
+
+            var messageFactory = MessagingFactory.Create(messagingFactoryUri, tokenProvider);
+
+            _topicClient = messageFactory.CreateTopicClient(topicName);
+
+            if (!_namespaceManager.SubscriptionExists(_topicName, _subscriptionName))
+                _namespaceManager.CreateSubscription(_topicName, _subscriptionName);
+
+            _subscriptionClient = messageFactory.CreateSubscriptionClient(_topicName, _subscriptionName, ReceiveMode.ReceiveAndDelete);
+
+            _subscriptionClient.OnMessageAsync(OnMessageAsync, new OnMessageOptions { AutoComplete = true });
+        }
 
         public WindowsServerServiceBusMessageBus(string connectionString, string topicName, ISerializer serializer = null, ILoggerFactory loggerFactory = null) : base(loggerFactory)
         {
