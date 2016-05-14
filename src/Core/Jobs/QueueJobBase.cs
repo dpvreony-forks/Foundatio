@@ -51,8 +51,7 @@ namespace Foundatio.Jobs {
             }
 
             try {
-                _logger.Info(() => $"Processing {_queueEntryName} queue entry ({queueEntry.Id}).");
-
+                LogProcessingQueueEntry(queueEntry);
                 var result = await ProcessQueueEntryAsync(new QueueEntryContext<T>(queueEntry, lockValue, cancellationToken)).AnyContext();
 
                 if (!AutoComplete || queueEntry.IsCompleted || queueEntry.IsAbandoned)
@@ -60,7 +59,7 @@ namespace Foundatio.Jobs {
 
                 if (result.IsSuccess) {
                     await queueEntry.CompleteAsync().AnyContext();
-                    _logger.Info(() => $"Auto completed {_queueEntryName} queue entry ({queueEntry.Id}).");
+                    LogAutoCompletedQueueEntry(queueEntry);
                 } else {
                     await queueEntry.AbandonAsync().AnyContext();
                     _logger.Warn(() => $"Auto abandoned {_queueEntryName} queue entry ({queueEntry.Id}).");
@@ -76,6 +75,14 @@ namespace Foundatio.Jobs {
             } finally {
                 await lockValue.ReleaseAsync().AnyContext();
             }
+        }
+
+        protected virtual void LogProcessingQueueEntry(IQueueEntry<T> queueEntry) {
+            _logger.Info().Message(() => $"Processing {_queueEntryName} queue entry ({queueEntry.Id}).").Write();
+        }
+
+        protected virtual void LogAutoCompletedQueueEntry(IQueueEntry<T> queueEntry) {
+            _logger.Info().Message(() => $"Auto completed {_queueEntryName} queue entry ({queueEntry.Id}).").Write();
         }
 
         protected abstract Task<JobResult> ProcessQueueEntryAsync(QueueEntryContext<T> context);

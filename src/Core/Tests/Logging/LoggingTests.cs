@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Foundatio.Extensions;
 using Foundatio.Logging;
+using Foundatio.Logging.NLog;
 using Foundatio.Logging.Xunit;
 using Foundatio.Utility;
 using Xunit;
@@ -30,6 +31,15 @@ namespace Foundatio.Tests.Logging {
         }
 
         [Fact]
+        public void LogBuilder() {
+            var logger = Log.CreateLogger<LoggingTests>();
+            logger.Info().Message(() => "hello").Write();
+
+            Assert.Equal(1, Log.LogEntries.Count);
+            Assert.Equal("hello", Log.LogEntries[0].Message);
+        }
+
+        [Fact]
         public void LogNullString() {
             var logger = Log.CreateLogger<LoggingTests>();
             logger.Info().Message((string)null).Property("Id", (string)null).Write();
@@ -41,6 +51,12 @@ namespace Foundatio.Tests.Logging {
             var name = "Tester";
 
             logger.Info(() => $"{name} at {DateTime.Now}.");
+        }
+
+        [Fact]
+        public void LogException() {
+            var logger = Log.CreateLogger<LoggingTests>();
+            logger.Error().Exception(new Exception("test")).Write();
         }
 
         private Task BlahAsync(ILogger logger) {

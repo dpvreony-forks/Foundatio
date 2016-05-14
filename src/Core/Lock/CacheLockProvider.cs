@@ -20,7 +20,7 @@ namespace Foundatio.Lock {
         protected readonly ILogger _logger;
 
         public CacheLockProvider(ICacheClient cacheClient, IMessageBus messageBus, ILoggerFactory loggerFactory = null) {
-            _logger = loggerFactory?.CreateLogger<CacheLockProvider>() ?? NullLogger.Instance;
+            _logger = loggerFactory.CreateLogger<CacheLockProvider>();
             _cacheClient = new ScopedCacheClient(cacheClient, "lock");
             _messageBus = messageBus;
         }
@@ -32,10 +32,10 @@ namespace Foundatio.Lock {
             lock (_lockObject) {
                 if (_isSubscribed)
                     return;
-
-                _isSubscribed = true;
+                
                 _logger.Trace("Subscribing to cache lock released.");
                 _messageBus.Subscribe<CacheLockReleased>(OnLockReleasedAsync);
+                _isSubscribed = true;
             }
         }
 
