@@ -82,6 +82,27 @@ namespace Foundatio.Queues {
             return id;
         }
 
+        protected override async Task<string> EnqueueImplAsync(string messageId, T data)
+        {
+            _logger.Trace("Queue {0} enqueue item: {1}", _queueName, messageId);
+
+            if (!await OnEnqueuingAsync(data).AnyContext())
+                return null;
+
+            var entry = new QueueEntry<T>(messageId, data.Copy(), this, SystemClock.UtcNow, 0);
+            _queue.Enqueue(entry);
+            _logger.Trace("Enqueue: Set Event");
+
+            using (await _monitor.EnterAsync())
+                _monitor.Pulse();
+            Interlocked.Increment(ref _enqueuedCount);
+
+            await OnEnqueuedAsync(entry).AnyContext();
+            _logger.Trace("Enqueue done");
+
+            return messageId;
+        }
+
         protected override void StartWorkingImpl(Func<IQueueEntry<T>, CancellationToken, Task> handler, bool autoComplete = false, CancellationToken cancellationToken = default(CancellationToken)) {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));

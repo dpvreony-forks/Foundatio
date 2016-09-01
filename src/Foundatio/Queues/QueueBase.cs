@@ -30,9 +30,17 @@ namespace Foundatio.Queues {
         protected abstract Task EnsureQueueCreatedAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         protected abstract Task<string> EnqueueImplAsync(T data);
+        protected abstract Task<string> EnqueueImplAsync(string messageId, T data);
+
         public async Task<string> EnqueueAsync(T data) {
             await EnsureQueueCreatedAsync().AnyContext();
             return await EnqueueImplAsync(data).AnyContext();
+        }
+
+        public async Task<string> EnqueueAsync(string messageId, T data)
+        {
+            await EnsureQueueCreatedAsync().AnyContext();
+            return await EnqueueImplAsync(messageId, data).AnyContext();
         }
 
         protected abstract Task<IQueueEntry<T>> DequeueImplAsync(CancellationToken cancellationToken);

@@ -83,6 +83,21 @@ namespace Foundatio.Queues {
             return message.Id;
         }
 
+        protected override async Task<string> EnqueueImplAsync(string messageId, T data)
+        {
+            if (!await OnEnqueuingAsync(data).AnyContext())
+                return null;
+
+            Interlocked.Increment(ref _enqueuedCount);
+            var message = new CloudQueueMessage(messageId, null);
+            message.SetMessageContent(await _serializer.SerializeAsync(data));
+            await _queueReference.AddMessageAsync(message).AnyContext();
+
+            var entry = new QueueEntry<T>(message.Id, data, this, SystemClock.UtcNow, 0);
+            await OnEnqueuedAsync(entry).AnyContext();
+
+            return message.Id;
+        }
         protected override async Task<IQueueEntry<T>> DequeueImplAsync(CancellationToken cancellationToken) {
             // TODO: Use cancellation token overloads
             var linkedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_queueDisposedCancellationTokenSource.Token, cancellationToken).Token;

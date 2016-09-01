@@ -6,7 +6,7 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>dfcfb06a-396d-4d80-adb7-0b4b32e5d1ce</ProjectGuid>
+    <ProjectGuid>053ad861-48e8-48f4-9a39-d40a17c2db4a</ProjectGuid>
     <RootNamespace>Foundatio.Azure.Tests</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>

@@ -27,7 +27,7 @@ namespace Foundatio.Azure.Tests.Queue {
             var retryPolicy = new RetryExponential(retryDelay.Value, maxBackoff, retries + 1);
 
             _logger.Debug("Queue Id: {queueId}", _queueName);
-            return new AzureServiceBusQueue<SimpleWorkItem>(Configuration.GetConnectionString("ServiceBusConnectionString"),
+            return new WindowsServerServiceBusQueue<SimpleWorkItem>(Configuration.GetConnectionString("ServiceBusConnectionString"),
                 _queueName, retries, workItemTimeout, retryPolicy, loggerFactory: Log);
         }
 

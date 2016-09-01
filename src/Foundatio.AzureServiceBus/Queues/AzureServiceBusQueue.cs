@@ -158,7 +158,22 @@ namespace Foundatio.Queues {
 
             return message.MessageId;
         }
-        
+
+        protected override async Task<string> EnqueueImplAsync(string messageId, T data)
+        {
+            if (!await OnEnqueuingAsync(data).AnyContext())
+                return null;
+
+            Interlocked.Increment(ref _enqueuedCount);
+            var message = new BrokeredMessage(data) {MessageId = messageId};
+            await _queueClient.SendAsync(message).AnyContext();
+
+            var entry = new QueueEntry<T>(message.MessageId, data, this, SystemClock.UtcNow, 0);
+            await OnEnqueuedAsync(entry).AnyContext();
+
+            return message.MessageId;
+        }
+
         protected override void StartWorkingImpl(Func<IQueueEntry<T>, CancellationToken, Task> handler, bool autoComplete, CancellationToken cancellationToken) {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));

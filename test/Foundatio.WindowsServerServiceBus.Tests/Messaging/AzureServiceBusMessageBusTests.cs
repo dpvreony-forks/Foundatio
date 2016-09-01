@@ -16,7 +16,7 @@ namespace Foundatio.Azure.Tests.Messaging {
             if (String.IsNullOrEmpty(Configuration.GetConnectionString("ServiceBusConnectionString")))
                 return null;
 
-            return new AzureServiceBusMessageBus(Configuration.GetConnectionString("ServiceBusConnectionString"), _topicName, loggerFactory: Log);
+            return new WindowsServerServiceBusMessageBus(Configuration.GetConnectionString("ServiceBusConnectionString"), _topicName, loggerFactory: Log);
         }
 
         [Fact]

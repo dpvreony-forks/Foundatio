@@ -178,11 +178,18 @@ namespace Foundatio.Queues {
             return String.Concat("q:", _queueName, ":in");
         }
 
-        protected override async Task<string> EnqueueImplAsync(T data) {
+        protected override async Task<string> EnqueueImplAsync(T data)
+        {
             string id = Guid.NewGuid().ToString("N");
+            return await EnqueueImplAsync(id, data);
+        }
+
+        protected override async Task<string> EnqueueImplAsync(string id, T data)
+        {
             _logger.Debug("Queue {_queueName} enqueue item: {id}", _queueName, id);
 
-            if (!await OnEnqueuingAsync(data).AnyContext()) {
+            if (!await OnEnqueuingAsync(data).AnyContext())
+            {
                 _logger.Trace("Aborting enqueue item: {id}", id);
                 return null;
             }
@@ -196,9 +203,11 @@ namespace Foundatio.Queues {
             await Run.WithRetriesAsync(() => Database.ListLeftPushAsync(QueueListName, id), logger: _logger).AnyContext();
 
             // This should pulse the monitor.
-            try {
+            try
+            {
                 await Run.WithRetriesAsync(() => _subscriber.PublishAsync(GetTopicName(), id), logger: _logger).AnyContext();
-            } catch { }
+            }
+            catch { }
 
             Interlocked.Increment(ref _enqueuedCount);
             var entry = new QueueEntry<T>(id, data, this, now, 0);

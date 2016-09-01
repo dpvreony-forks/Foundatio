@@ -56,6 +56,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.RabbitMQSubscribe
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.WindowsServerServiceBus", "src\Foundatio.WindowsServerServiceBus\Foundatio.WindowsServerServiceBus.xproj", "{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.WindowsServerServiceBus.Tests", "test\Foundatio.WindowsServerServiceBus.Tests\Foundatio.WindowsServerServiceBus.Tests.xproj", "{053AD861-48E8-48F4-9A39-D40A17C2DB4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -146,6 +148,10 @@ Global
 		{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{053AD861-48E8-48F4-9A39-D40A17C2DB4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{053AD861-48E8-48F4-9A39-D40A17C2DB4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{053AD861-48E8-48F4-9A39-D40A17C2DB4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{053AD861-48E8-48F4-9A39-D40A17C2DB4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -162,5 +168,6 @@ Global
 		{CE14E239-DC13-423A-BE23-2B806F2313FD} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
 		{E3BE24B5-FC1F-41A0-AAE8-B31D84162D78} = {A1DFF80C-113F-4FEC-84BB-1E3790FB410F}
 		{5250856E-2587-4ED3-AA1A-DD673EC46EF0} = {A1DFF80C-113F-4FEC-84BB-1E3790FB410F}
+		{053AD861-48E8-48F4-9A39-D40A17C2DB4A} = {70515E66-DAF8-4D18-8F8F-8A2934171AA9}
 	EndGlobalSection
 EndGlobal
