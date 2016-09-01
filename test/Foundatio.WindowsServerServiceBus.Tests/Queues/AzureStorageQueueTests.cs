@@ -1,47 +1,36 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Foundatio.Logging;
 using Foundatio.Queues;
 using Foundatio.Tests.Queue;
 using Foundatio.Tests.Utility;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Xunit;
-using System.Threading.Tasks;
-using Microsoft.ServiceBus;
 using Xunit.Abstractions;
 
 namespace Foundatio.Azure.Tests.Queue {
-    public class WindowsServerServiceBusQueueTests : QueueTestBase {
-        private static readonly string QueueName = Guid.NewGuid().ToString("N");
+    [Collection("AzureStorageIntegrationTests")]
+    public class AzureStorageQueueTests : QueueTestBase {
+        private static readonly string _queueName = Guid.NewGuid().ToString("N");
 
-        public WindowsServerServiceBusQueueTests(ITestOutputHelper output) : base(output) {}
+        public AzureStorageQueueTests(ITestOutputHelper output) : base(output) {}
 
         protected override IQueue<SimpleWorkItem> GetQueue(int retries = 1, TimeSpan? workItemTimeout = null, TimeSpan? retryDelay = null, int deadLetterMaxItems = 100, bool runQueueMaintenance = true) {
-            if (String.IsNullOrEmpty(ConnectionStrings.Get("ServiceBusConnectionString")))
+            if (String.IsNullOrEmpty(Configuration.GetConnectionString("StorageConnectionString")))
                 return null;
 
             if (!retryDelay.HasValue)
                 retryDelay = TimeSpan.Zero;
 
-            var maxBackoff = retryDelay.Value > TimeSpan.Zero
-                ? retryDelay.Value + retryDelay.Value
-                : TimeSpan.FromSeconds(1);
-
-            var deltaBackoff = retryDelay.Value > TimeSpan.Zero
-                ? retryDelay.Value + retryDelay.Value
-                : TimeSpan.FromSeconds(1);
-
-            var terminationTimeBuffer = retryDelay.Value > TimeSpan.Zero
-                ? TimeSpan.FromMilliseconds(retryDelay.Value.TotalMilliseconds * 2 * retries)
-                : TimeSpan.FromSeconds(60);
-
-            var retryPolicy = new RetryExponential(retryDelay.Value, maxBackoff, deltaBackoff, terminationTimeBuffer, retries + 1);
-            return new WindowsServerServiceBusQueue<SimpleWorkItem>(ConnectionStrings.Get("ServiceBusConnectionString"),
-                QueueName, retries, workItemTimeout, false, retryPolicy, loggerFactory: Log);
+            _logger.Debug("Queue Id: {queueId}", _queueName);
+            return new AzureStorageQueue<SimpleWorkItem>(Configuration.GetConnectionString("StorageConnectionString"), _queueName, retries, workItemTimeout, TimeSpan.FromMilliseconds(50), new ExponentialRetry(retryDelay.Value, retries), loggerFactory: Log);
         }
 
         [Fact]
         public override Task CanQueueAndDequeueWorkItem() {
             return base.CanQueueAndDequeueWorkItem();
         }
-        
+
         [Fact]
         public override Task CanDequeueWithCancelledToken() {
             return base.CanDequeueWithCancelledToken();
@@ -112,7 +101,7 @@ namespace Foundatio.Azure.Tests.Queue {
             return base.CanCompleteQueueEntryOnce();
         }
 
-        // NOTE: Not using this test because you can set specific delay times for servicebus
+        // NOTE: Not using this test because you can set specific delay times for storage queue
         public override Task CanDelayRetry() {
             return base.CanDelayRetry();
         }

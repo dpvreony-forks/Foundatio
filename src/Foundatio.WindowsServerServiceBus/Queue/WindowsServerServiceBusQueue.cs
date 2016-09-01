@@ -7,14 +7,15 @@ using Foundatio.Logging;
 using Foundatio.Serializer;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using Nito.AsyncEx;
 
 namespace Foundatio.Queues
 {
     public class WindowsServerServiceBusQueue<T> : QueueBase<T> where T : class
     {
-        private readonly string _queueName;
+        private readonly string _connectionString;
         private readonly NamespaceManager _namespaceManager;
-        private readonly QueueClient _queueClient;
+        private QueueClient _queueClient;
         private QueueDescription _queueDescription;
         private long _enqueuedCount;
         private long _dequeuedCount;
@@ -22,55 +23,34 @@ namespace Foundatio.Queues
         private long _abandonedCount;
         private long _workerErrorCount;
         private readonly int _retries;
+        private readonly RetryPolicy _retryPolicy;
         private readonly TimeSpan _workItemTimeout = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan _autoDeleteOnIdle = TimeSpan.MaxValue;
+        private readonly TimeSpan _defaultMessageTimeToLive = TimeSpan.MaxValue;
+        private readonly AsyncLock _lock = new AsyncLock();
 
-        public WindowsServerServiceBusQueue(string connectionString, string queueName = null, int retries = 2, TimeSpan? workItemTimeout = null, bool shouldRecreate = false, RetryPolicy retryPolicy = null, ISerializer serializer = null, IEnumerable<IQueueBehavior<T>> behaviors = null, ILoggerFactory loggerFactory = null) : base(serializer, behaviors, loggerFactory)
-        {
-            _queueName = queueName ?? typeof(T).Name;
+        public WindowsServerServiceBusQueue(string connectionString, string queueName = null, int retries = 2, TimeSpan? workItemTimeout = null, RetryPolicy retryPolicy = null, ISerializer serializer = null, IEnumerable<IQueueBehavior<T>> behaviors = null, ILoggerFactory loggerFactory = null, TimeSpan? autoDeleteOnIdle = null, TimeSpan? defaultMessageTimeToLive = null) : base(serializer, behaviors, loggerFactory) {
+            _connectionString = connectionString;
+            if (!String.IsNullOrEmpty(queueName))
+                _queueName = queueName;
             _namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
             _retries = retries;
+            _retryPolicy = retryPolicy;
+
             if (workItemTimeout.HasValue && workItemTimeout.Value < TimeSpan.FromMinutes(5))
-                _workItemTimeout = workItemTimeout.Value;
-
-            if (_namespaceManager.QueueExists(_queueName) && shouldRecreate)
-                _namespaceManager.DeleteQueue(_queueName);
-
-            if (!_namespaceManager.QueueExists(_queueName))
             {
-                _queueDescription = new QueueDescription(_queueName)
-                {
-                    MaxDeliveryCount = retries + 1,
-                    LockDuration = _workItemTimeout
-                };
-                _namespaceManager.CreateQueue(_queueDescription);
-            }
-            else {
-                _queueDescription = _namespaceManager.GetQueue(_queueName);
-
-                bool changes = false;
-
-                int newMaxDeliveryCount = retries + 1;
-                if (_queueDescription.MaxDeliveryCount != newMaxDeliveryCount)
-                {
-                    _queueDescription.MaxDeliveryCount = newMaxDeliveryCount;
-                    changes = true;
-                }
-
-                if (_queueDescription.LockDuration != _workItemTimeout)
-                {
-                    _queueDescription.LockDuration = _workItemTimeout;
-                    changes = true;
-                }
-
-                if (changes)
-                {
-                    _namespaceManager.UpdateQueue(_queueDescription);
-                }
+                _workItemTimeout = workItemTimeout.Value;
             }
 
-            _queueClient = QueueClient.CreateFromConnectionString(connectionString, _queueDescription.Path);
-            if (retryPolicy != null)
-                _queueClient.RetryPolicy = retryPolicy;
+            if (autoDeleteOnIdle.HasValue && autoDeleteOnIdle.Value >= TimeSpan.FromMinutes(5))
+            {
+                _autoDeleteOnIdle = autoDeleteOnIdle.Value;
+            }
+
+            if (defaultMessageTimeToLive.HasValue && defaultMessageTimeToLive.Value > TimeSpan.Zero)
+            {
+                _defaultMessageTimeToLive = defaultMessageTimeToLive.Value;
+            }
         }
 
         public override async Task DeleteQueueAsync()
@@ -93,7 +73,86 @@ namespace Foundatio.Queues
             _workerErrorCount = 0;
         }
 
-        public override async Task<QueueStats> GetQueueStatsAsync()
+        protected override async Task EnsureQueueCreatedAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            if (_queueClient != null)
+            {
+                return;
+            }
+
+            using (await _lock.LockAsync(cancellationToken))
+            {
+                if (_queueClient != null)
+                {
+                    return;
+                }
+
+                QueueDescription queueDescription;
+
+                if (!await _namespaceManager.QueueExistsAsync(_queueName).AnyContext())
+                {
+                    try
+                    {
+                        queueDescription = await _namespaceManager.CreateQueueAsync(new QueueDescription(_queueName)
+                        {
+                            MaxDeliveryCount = _retries + 1,
+                            LockDuration = _workItemTimeout,
+                            AutoDeleteOnIdle = _autoDeleteOnIdle,
+                            DefaultMessageTimeToLive = _defaultMessageTimeToLive
+                        }).AnyContext();
+                    }
+                    catch (MessagingException)
+                    {
+                        queueDescription = await _namespaceManager.GetQueueAsync(_queueName).AnyContext();
+                    }
+                }
+                else
+                {
+                    queueDescription = await _namespaceManager.GetQueueAsync(_queueName).AnyContext();
+
+                    bool changes = false;
+
+                    int newMaxDeliveryCount = _retries + 1;
+                    if (queueDescription.MaxDeliveryCount != newMaxDeliveryCount)
+                    {
+                        queueDescription.MaxDeliveryCount = newMaxDeliveryCount;
+                        changes = true;
+                    }
+
+                    if (queueDescription.LockDuration != _workItemTimeout)
+                    {
+                        queueDescription.LockDuration = _workItemTimeout;
+                        changes = true;
+                    }
+
+                    if (queueDescription.AutoDeleteOnIdle != _autoDeleteOnIdle)
+                    {
+                        queueDescription.AutoDeleteOnIdle = _autoDeleteOnIdle;
+                        changes = true;
+                    }
+
+                    if (queueDescription.DefaultMessageTimeToLive != _defaultMessageTimeToLive)
+                    {
+                        queueDescription.DefaultMessageTimeToLive = _defaultMessageTimeToLive;
+                        changes = true;
+                    }
+
+                    if (changes)
+                    {
+                        await _namespaceManager.UpdateQueueAsync(queueDescription).AnyContext();
+                    }
+                }
+
+                _queueClient = QueueClient.CreateFromConnectionString(_connectionString, queueDescription.Path);
+
+                if (_retryPolicy != null)
+                {
+                    _queueClient.RetryPolicy = _retryPolicy;
+                }
+            }
+        }
+
+        protected override async Task<QueueStats> GetQueueStatsImplAsync()
         {
             var q = await _namespaceManager.GetQueueAsync(_queueName).AnyContext();
             return new QueueStats
@@ -110,12 +169,12 @@ namespace Foundatio.Queues
             };
         }
 
-        public override Task<IEnumerable<T>> GetDeadletterItemsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        protected override Task<IEnumerable<T>> GetDeadletterItemsImplAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<string> EnqueueAsync(T data)
+        protected override async Task<string> EnqueueImplAsync(T data)
         {
             if (!await OnEnqueuingAsync(data).AnyContext())
                 return null;
@@ -130,7 +189,7 @@ namespace Foundatio.Queues
             return message.MessageId;
         }
 
-        public override void StartWorking(Func<IQueueEntry<T>, CancellationToken, Task> handler, bool autoComplete = false, CancellationToken cancellationToken = default(CancellationToken))
+        protected override void StartWorkingImpl(Func<IQueueEntry<T>, CancellationToken, Task> handler, bool autoComplete, CancellationToken cancellationToken)
         {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
@@ -163,7 +222,7 @@ namespace Foundatio.Queues
             }
         }
 
-        public override Task<IQueueEntry<T>> DequeueAsync(CancellationToken cancellationToken)
+        protected override Task<IQueueEntry<T>> DequeueImplAsync(CancellationToken cancellationToken)
         {
             _logger.Warn("Azure Service Bus does not support CancellationTokens - use TimeSpan overload instead. Using default 30 second timeout.");
 
