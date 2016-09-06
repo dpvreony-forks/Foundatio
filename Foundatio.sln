@@ -54,7 +54,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.RabbitMQPublishCo
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.RabbitMQSubscribeConsole", "samples\Foundatio.RabbitMQSubscribeConsole\Foundatio.RabbitMQSubscribeConsole.xproj", "{5250856E-2587-4ED3-AA1A-DD673EC46EF0}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.WindowsServerServiceBus", "src\Foundatio.WindowsServerServiceBus\Foundatio.WindowsServerServiceBus.xproj", "{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Foundatio.ServiceBus.v1_1", "src\Foundatio.WindowsServerServiceBus\Foundatio.ServiceBus.v1_1.xproj", "{2AE275A8-1541-4D97-B26D-5BEFB07B5DE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

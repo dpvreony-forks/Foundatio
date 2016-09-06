@@ -1,6 +1,6 @@
 {
     "version": "99.99.99-dev",
-    "title": "Foundatio Azure ServiceBus Implementations",
+    "title": "Foundatio Windows ServiceBus Implementations",
     "description": "Pluggable foundation blocks for building distributed apps.",
     "authors": [ "bniemyjski", "ejsmith" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
